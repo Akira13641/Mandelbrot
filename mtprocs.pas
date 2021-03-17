@@ -214,6 +214,48 @@ threadvar
 
 implementation
 
+procedure TProcThreadPool.EnterPoolCriticalSection;
+begin
+  EnterCriticalsection(FCritSection);
+end;
+
+procedure TProcThreadPool.LeavePoolCriticalSection;
+begin
+  LeaveCriticalsection(FCritSection);
+end;
+
+procedure TProcThreadGroup.Run(Index: PtrInt; Data: Pointer;
+  Item: TMultiThreadProcItem); inline;
+begin
+  if Assigned(FTaskFrame) then
+    CallLocalProc(FTaskProcedure,FTaskFrame,Index,Data,Item)
+  else if Assigned(FTaskProcedure) then
+    FTaskProcedure(Index,Data,Item)
+  else if Assigned(FTaskNested) then
+    FTaskNested(Index,Data,Item)
+  else
+    FTaskMethod(Index,Data,Item);
+end;
+
+procedure TProcThread.RemoveFromList(var First: TProcThread;
+  ListType: TMTPThreadList);
+begin
+  if First=Self then
+    First:=FNext[ListType];
+  if FNext[ListType]<>nil then
+    FNext[ListType].FPrev[ListType]:=FPrev[ListType];
+  if FPrev[ListType]<>nil then
+    FPrev[ListType].FNext[ListType]:=FNext[ListType];
+  FNext[ListType]:=nil;
+  FPrev[ListType]:=nil;
+end;
+
+procedure TProcThreadGroup.RemoveThread(AThread: TProcThread);
+begin
+  AThread.RemoveFromList(FFirstThread,mtptlGroup);
+  dec(FThreadCount);
+end;
+
 { TMultiThreadProcItem }
 
 destructor TMultiThreadProcItem.Destroy;
@@ -286,19 +328,6 @@ begin
   if FNext[ListType]<>nil then
     FNext[ListType].FPrev[ListType]:=Self;
   First:=Self;
-end;
-
-procedure TProcThread.RemoveFromList(var First: TProcThread;
-  ListType: TMTPThreadList);
-begin
-  if First=Self then
-    First:=FNext[ListType];
-  if FNext[ListType]<>nil then
-    FNext[ListType].FPrev[ListType]:=FPrev[ListType];
-  if FPrev[ListType]<>nil then
-    FPrev[ListType].FNext[ListType]:=FNext[ListType];
-  FNext[ListType]:=nil;
-  FPrev[ListType]:=nil;
 end;
 
 procedure TProcThread.Terminating(aPool: TProcThreadPool;
@@ -447,25 +476,6 @@ begin
   AThread.AddToList(FFirstThread,mtptlGroup);
   inc(FThreadCount);
   IncreaseLastRunningIndex(AThread.Item);
-end;
-
-procedure TProcThreadGroup.RemoveThread(AThread: TProcThread);
-begin
-  AThread.RemoveFromList(FFirstThread,mtptlGroup);
-  dec(FThreadCount);
-end;
-
-procedure TProcThreadGroup.Run(Index: PtrInt; Data: Pointer;
-  Item: TMultiThreadProcItem); inline;
-begin
-  if Assigned(FTaskFrame) then
-    CallLocalProc(FTaskProcedure,FTaskFrame,Index,Data,Item)
-  else if Assigned(FTaskProcedure) then
-    FTaskProcedure(Index,Data,Item)
-  else if Assigned(FTaskNested) then
-    FTaskNested(Index,Data,Item)
-  else
-    FTaskMethod(Index,Data,Item);
 end;
 
 procedure TProcThreadGroup.IndexComplete(Index: PtrInt);
@@ -667,16 +677,6 @@ begin
 
   DoneCriticalsection(FCritSection);
   inherited Destroy;
-end;
-
-procedure TProcThreadPool.EnterPoolCriticalSection;
-begin
-  EnterCriticalsection(FCritSection);
-end;
-
-procedure TProcThreadPool.LeavePoolCriticalSection;
-begin
-  LeaveCriticalsection(FCritSection);
 end;
 
 procedure TProcThreadPool.DoParallel(const AMethod: TMTMethod;
