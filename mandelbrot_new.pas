@@ -118,7 +118,7 @@ begin
   end;
   {$ifdef Unix}
     PrintF('P4'#10'%d %d'#10, Size, Size);
-    FWrite(@Data.Rows[0], BytesPerRow, Size, CStdOut);
+    FWrite(@Data.Rows[0], 1, BytesPerRow * Size, CStdOut);
   {$else}
     IO := @Output;
     Write(IO^, 'P4', #10, Size, ' ', Size, #10);
