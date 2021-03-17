@@ -1,4 +1,4 @@
-* The Computer Language Benchmarks Game
+(* The Computer Language Benchmarks Game
    https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
    - Based on "Go #4" by Martin Koistinen
    - Contributed by Akira1364
