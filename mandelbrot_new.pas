@@ -31,7 +31,7 @@ type
   PDoublePair = ^TDoublePair;
   TData = record
     Rows: PByte;
-    InitialIR: PDoublePair;
+    //InitialIR: PDoublePair;
   end;
 
   PData = ^TData;
@@ -48,16 +48,14 @@ var
     XByte, I, J, X: PtrInt;
     ZRA, ZRB, ZIA, ZIB, TRA, TRB, TIA, TIB, CRA, CRB, CI: Double;
   begin
-    CI := TData(UserData^).InitialIR[Index].I;
+    CI := (Inv * Double(Index)) - 1.0;
     for XByte := Pred(BytesPerRow) downto 0 do begin
       Res := 0;
       I := 0;
       repeat
         X := XByte shl 3;
-        with TData(UserData^) do begin
-          CRA := InitialIR[X + I].R;
-          CRB := InitialIR[X + I + 1].R;
-        end;
+        CRA := (Inv * Double(PtrInt(X + I))) - 1.5;
+        CRB := (Inv * Double(PtrInt(X + I + 1))) - 1.5;
         ZRA := CRA;
         ZIA := CI;
         ZRB := CRB;
@@ -111,12 +109,12 @@ begin
   if ParamCount > 0 then Val(ParamStr(1), Size);
   BytesPerRow := Size shr 3;
   with Data do begin
-    GetMem(InitialIR, SizeOf(TDoublePair) * Size);
+    //GetMem(InitialIR, SizeOf(TDoublePair) * Size);
     GetMem(Rows, BytesPerRow * Size);
   end;
   Inv := 2.0 / Double(Size);
   with ProcThreadPool do begin
-    DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
+    //DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
     DoParallel(@RenderRows, 0, Pred(Size), @Data);
   end;
   {$ifdef Unix}
@@ -129,7 +127,7 @@ begin
     FileWrite(StdOutPutHandle, Data.Rows[0], BytesPerRow * Size);
   {$endif}
   with Data do begin
-    FreeMem(InitialIR);
+    //FreeMem(InitialIR);
     FreeMem(Rows);
   end;
 end.
