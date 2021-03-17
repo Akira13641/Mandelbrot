@@ -21,6 +21,9 @@ script:
   - ./mandelbrot 200 > mandelbrot-output-new.txt
   - diff --text mandelbrot-output.txt mandelbrot-output-new.txt
   - rm ./mandelbrot-output-new.txt
-  - time ./mandelbrot 16000 > /dev/null 2>&1
-  - ./mandelbrot_new 200
-  - time ./mandelbrot_new 16000 > /dev/null 2>&1
+  - time ./mandelbrot 16000 > /dev/null
+  - ./mandelbrot_new 200 > mandelbrot-output-new.txt
+  - diff --text mandelbrot-output.txt mandelbrot-output-new.txt
+  - rm ./mandelbrot-output-new.txt
+  - time ./mandelbrot_new 16000 > /dev/null
+  - rm -rf ./lib
