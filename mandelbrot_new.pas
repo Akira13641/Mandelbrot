@@ -25,9 +25,13 @@ const
   Size: PtrInt = 200;
 
 type
+  TDoublePair = record
+    I, R: Double;
+  end;
+  PDoublePair = ^TDoublePair;
   TData = record
     Rows: PByte;
-    InitialR, InitialI: PDouble;
+    InitialIR: PDoublePair;
   end;
 
   PData = ^TData;
@@ -44,15 +48,15 @@ var
     XByte, I, J, X: PtrInt;
     ZRA, ZRB, ZIA, ZIB, TRA, TRB, TIA, TIB, CRA, CRB, CI: Double;
   begin
-    CI := TData(UserData^).InitialI[Index];
+    CI := TData(UserData^).InitialIR[Index].I;
     for XByte := Pred(BytesPerRow) downto 0 do begin
       Res := 0;
       I := 0;
       repeat
         X := XByte shl 3;
         with TData(UserData^) do begin
-          CRA := InitialR[X + I];
-          CRB := InitialR[X + I + 1];
+          CRA := InitialIR[X + I].R;
+          CRB := InitialIR[X + I + 1].R;
         end;
         ZRA := CRA;
         ZIA := CI;
@@ -90,9 +94,9 @@ var
   var InvScaled: Double;
   begin
     InvScaled := Inv * Double(Index);
-    with TData(UserData^) do begin
-      InitialI[Index] := InvScaled - 1.0;
-      InitialR[Index] := InvScaled - 1.5;
+    with TData(UserData^).InitialIR[Index] do begin
+      I := InvScaled - 1.0;
+      R := InvScaled - 1.5;
     end;
   end;
 
@@ -107,8 +111,7 @@ begin
   if ParamCount > 0 then Val(ParamStr(1), Size);
   BytesPerRow := Size shr 3;
   with Data do begin
-    GetMem(InitialI, SizeOf(Double) * Size);
-    GetMem(InitialR, SizeOf(Double) * Size);
+    GetMem(InitialIR, SizeOf(TDoublePair) * Size);
     GetMem(Rows, BytesPerRow * Size);
   end;
   Inv := 2.0 / Double(Size);
@@ -118,7 +121,7 @@ begin
   end;
   {$ifdef Unix}
     PrintF('P4'#10'%d %d'#10, Size, Size);
-    FWrite(@Data.Rows[0], 1, BytesPerRow * Size, CStdOut);
+    FWrite(@Data.Rows[0], BytesPerRow, Size, CStdOut);
   {$else}
     IO := @Output;
     Write(IO^, 'P4', #10, Size, ' ', Size, #10);
@@ -126,8 +129,7 @@ begin
     FileWrite(StdOutPutHandle, Data.Rows[0], BytesPerRow * Size);
   {$endif}
   with Data do begin
-    FreeMem(InitialI);
-    FreeMem(InitialR);
+    FreeMem(InitialIR);
     FreeMem(Rows);
   end;
 end.
