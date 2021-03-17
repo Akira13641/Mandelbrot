@@ -1,4 +1,4 @@
-(* The Computer Language Benchmarks Game
+* The Computer Language Benchmarks Game
    https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
    - Based on "Go #4" by Martin Koistinen
    - Contributed by Akira1364
@@ -26,12 +26,12 @@ const
 
 type
   TDoublePair = record
-    R: Double;
+    I, R: Double;
   end;
   PDoublePair = ^TDoublePair;
   TData = record
     Rows: PByte;
-    InitialR: PDoublePair;
+    //InitialIR: PDoublePair;
   end;
 
   PData = ^TData;
@@ -48,16 +48,14 @@ var
     XByte, I, J, X: PtrInt;
     ZRA, ZRB, ZIA, ZIB, TRA, TRB, TIA, TIB, CRA, CRB, CI: Double;
   begin
-    CI := (Inv * Double(Index)) - 1.0;
+    CI := Double(Inv * Double(Index)) - 1.0;
     for XByte := Pred(BytesPerRow) downto 0 do begin
       Res := 0;
       I := 0;
       repeat
         X := XByte shl 3;
-        with TData(UserData^) do begin
-          CRA := InitialR[X + I].R;
-          CRB := InitialR[X + I + 1].R;
-        end;
+        CRA := Double(Inv * Double(X + I)) - 1.5;
+        CRB := Double(Inv * Double(X + I + 1)) - 1.5;
         ZRA := CRA;
         ZIA := CI;
         ZRB := CRB;
@@ -87,14 +85,19 @@ var
       TData(UserData^).Rows[(Index * BytesPerRow) + XByte] := not Res;
     end;
   end;
-
-  procedure MakeLookupTables(Index: PtrInt;
+  
+  {procedure MakeLookupTables(Index: PtrInt;
                              UserData: Pointer;
                              Item: TMultiThreadProcItem);
+  var InvScaled: Double;
   begin
-    TData(UserData^).InitialR[Index].R := (Inv * Double(Index)) - 1.5;
-  end;
-
+    InvScaled := Inv * Double(Index);
+    with TData(UserData^).InitialIR[Index] do begin
+      I := InvScaled - 1.0;
+      R := InvScaled - 1.5;
+    end;
+  end;}
+  
 var
   Data: TData;
   {$ifndef Unix}
@@ -106,12 +109,12 @@ begin
   if ParamCount > 0 then Val(ParamStr(1), Size);
   BytesPerRow := Size shr 3;
   with Data do begin
-    GetMem(InitialR, SizeOf(TDoublePair) * Size);
+    //GetMem(InitialIR, SizeOf(TDoublePair) * Size);
     GetMem(Rows, BytesPerRow * Size);
   end;
   Inv := 2.0 / Double(Size);
   with ProcThreadPool do begin
-    DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
+    //DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
     DoParallel(@RenderRows, 0, Pred(Size), @Data);
   end;
   {$ifdef Unix}
@@ -124,7 +127,7 @@ begin
     FileWrite(StdOutPutHandle, Data.Rows[0], BytesPerRow * Size);
   {$endif}
   with Data do begin
-    FreeMem(InitialR);
+    //FreeMem(InitialIR);
     FreeMem(Rows);
   end;
 end.
