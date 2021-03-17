@@ -26,12 +26,12 @@ const
 
 type
   TDoublePair = record
-    I, R: Double;
+    R: Double;
   end;
   PDoublePair = ^TDoublePair;
   TData = record
     Rows: PByte;
-    //InitialIR: PDoublePair;
+    InitialR: PDoublePair;
   end;
 
   PData = ^TData;
@@ -54,8 +54,10 @@ var
       I := 0;
       repeat
         X := XByte shl 3;
-        CRA := (Inv * Double(PtrInt(X + I))) - 1.5;
-        CRB := (Inv * Double(PtrInt(X + I + 1))) - 1.5;
+        with TData(UserData^) do begin
+          CRA := InitialR[X + I].R;
+          CRB := InitialR[X + I + 1].R;
+        end;
         ZRA := CRA;
         ZIA := CI;
         ZRB := CRB;
@@ -86,17 +88,12 @@ var
     end;
   end;
 
-{procedure MakeLookupTables(Index: PtrInt;
+  procedure MakeLookupTables(Index: PtrInt;
                              UserData: Pointer;
                              Item: TMultiThreadProcItem);
-  var InvScaled: Double;
   begin
-    InvScaled := Inv * Double(Index);
-    with TData(UserData^).InitialIR[Index] do begin
-      I := InvScaled - 1.0;
-      R := InvScaled - 1.5;
-    end;
-    end;}
+    TData(UserData^).InitialR[Index].R := (Inv * Double(Index)) - 1.5;
+  end;
 
 var
   Data: TData;
@@ -109,12 +106,12 @@ begin
   if ParamCount > 0 then Val(ParamStr(1), Size);
   BytesPerRow := Size shr 3;
   with Data do begin
-    //GetMem(InitialIR, SizeOf(TDoublePair) * Size);
+    GetMem(InitialR, SizeOf(TDoublePair) * Size);
     GetMem(Rows, BytesPerRow * Size);
   end;
   Inv := 2.0 / Double(Size);
   with ProcThreadPool do begin
-    //DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
+    DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
     DoParallel(@RenderRows, 0, Pred(Size), @Data);
   end;
   {$ifdef Unix}
@@ -127,7 +124,7 @@ begin
     FileWrite(StdOutPutHandle, Data.Rows[0], BytesPerRow * Size);
   {$endif}
   with Data do begin
-    //FreeMem(InitialIR);
+    FreeMem(InitialR);
     FreeMem(Rows);
   end;
 end.
