@@ -14,10 +14,15 @@ before_install:
 
 install:
   - mkdir -p lib
-  - fpc -B -CfAVX -Ci- -CpCOREAVX -Cr- -Fu. -FU./lib -g- -O4 -o./mandelbrot -XXs ./mandelbrot.pas
+  - fpc -B -CfAVX -Ci- -CpCOREAVX -Cr- -Fu. -FU./lib -g- -O3 -o./mandelbrot -XXs ./mandelbrot.pas
+  - fpc -B -CfAVX -Ci- -CpCOREAVX -Cr- -Fu. -FU./lib -g- -O3 -o./mandelbrot_new -XXs ./mandelbrot_new.pas
 
 script:
   - ./mandelbrot 200 > mandelbrot-output-new.txt
   - cmp mandelbrot-output.txt mandelbrot-output-new.txt
-  - time ./mandelbrot 16000 > /dev/null 2>&1
   - rm ./mandelbrot-output-new.txt
+  - time ./mandelbrot 16000 > /dev/null 2>&1
+  - ./mandelbrot_new 200 > mandelbrot-output-new.txt
+  - cmp mandelbrot-output.txt mandelbrot-output-new.txt
+  - rm ./mandelbrot-output-new.txt
+  - time ./mandelbrot_new 16000 > /dev/null 2>&1
