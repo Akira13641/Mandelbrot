@@ -11,6 +11,8 @@ uses CMem, {$ifdef Unix}CThreads,{$ENDIF} SysUtils, Math, MTProcs;
 {$ifdef Unix}
   var CStdOut: Pointer; external 'c' name 'stdout';
   
+  procedure PrintF(const Format: PChar); cdecl; varargs; external ’c’ name ’printf’;  
+  
   function FWrite(const DataStart: Pointer;
                   ElementSize: PtrUInt;
                   ElementCount: PtrUInt;
@@ -96,7 +98,9 @@ var
 
 var
   Data: TData;
-  IO: PText;
+  {$ifndef Unix}
+    IO: PText;
+  {$endif}
 
 begin
   SetExceptionMask([exInvalidOp, exOverflow, exPrecision]);
@@ -112,12 +116,13 @@ begin
     DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
     DoParallel(@RenderRows, 0, Pred(Size), @Data);
   end;
-  IO := @Output;
-  Write(IO^, 'P4', #10, Size, ' ', Size, #10);
-  Flush(IO^);
   {$ifdef Unix}
+    PrintF('P4'#10'%d %d'#10, Size, Size);
     FWrite(@Data.Rows[0], BytesPerRow, Size, CStdOut);
   {$else}
+    IO := @Output;
+    Write(IO^, 'P4', #10, Size, ' ', Size, #10);
+    Flush(IO^);
     FileWrite(StdOutPutHandle, Data.Rows[0], BytesPerRow * Size);
   {$endif}
   with Data do begin
