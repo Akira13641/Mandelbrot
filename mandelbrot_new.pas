@@ -86,7 +86,7 @@ var
     end;
   end;
 
-  procedure MakeLookupTables(Index: PtrInt;
+{procedure MakeLookupTables(Index: PtrInt;
                              UserData: Pointer;
                              Item: TMultiThreadProcItem);
   var InvScaled: Double;
@@ -96,7 +96,7 @@ var
       I := InvScaled - 1.0;
       R := InvScaled - 1.5;
     end;
-  end;
+    end;}
 
 var
   Data: TData;
