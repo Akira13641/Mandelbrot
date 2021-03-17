@@ -11,7 +11,7 @@ uses CMem, {$ifdef Unix}CThreads,{$ENDIF} SysUtils, Math, MTProcs;
 {$ifdef Unix}
   var CStdOut: Pointer; external 'c' name 'stdout';
   
-  function FWrite(const Ptr: Pointer;
+  function FWrite(const DataStart: Pointer;
                   ElementSize: PtrUInt;
                   ElementCount: PtrUInt;
                   Stream: Pointer
@@ -112,7 +112,7 @@ begin
   end;
   WriteLn('P4', #10, Size, ' ', Size);
   {$ifdef Unix}
-    FWrite(CStdOut, @Data.Rows[0], BytesPerRow, Size);
+    FWrite(@Data.Rows[0], BytesPerRow, Size, CStdOut);
   {$else}
     FileWrite(StdOutPutHandle, Data.Rows[0], BytesPerRow * Size);
   {$endif}
