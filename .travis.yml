@@ -1,0 +1,23 @@
+language: c
+sudo: true
+
+jobs:
+  include:
+  - os: linux
+    dist: focal
+
+before_install:
+  - wget -c https://versaweb.dl.sourceforge.net/project/lazarus/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0.12/fpc-src_3.2.0-1_amd64.deb
+  - wget -c https://cfhcable.dl.sourceforge.net/project/lazarus/Lazarus%20Linux%20amd64%20DEB/Lazarus%202.0.12/fpc-laz_3.2.0-1_amd64.deb
+  - sudo apt install ./fpc-src_3.2.0-1_amd64.deb
+  - sudo apt install ./fpc-laz_3.2.0-1_amd64.deb
+
+install:
+  - mkdir -p lib
+  - fpc -B -CfAVX -Ci- -CpCOREAVX -Cr- -Fu. -FU./lib -g- -O4 -o./mandelbrot -XXs ./mandelbrot.pas
+
+script:
+  - ./mandelbrot 200 > mandelbrot-output-new.txt
+  - cmp mandelbrot-output.txt mandelbrot-output-new.txt
+  - time ./mandelbrot 16000 > /dev/null 2>&1
+  - rm ./mandelbrot-output-new.txt
