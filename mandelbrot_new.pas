@@ -94,7 +94,9 @@ var
     end;
   end;
 
-var Data: TData;
+var
+  Data: TData;
+  IO: PText;
 
 begin
   SetExceptionMask([exInvalidOp, exOverflow, exPrecision]);
@@ -110,7 +112,9 @@ begin
     DoParallel(@MakeLookupTables, 0, Pred(Size), @Data);
     DoParallel(@RenderRows, 0, Pred(Size), @Data);
   end;
-  WriteLn('P4', #10, Size, ' ', Size);
+  IO := @Output;
+  Write(IO^, 'P4', #10, Size, ' ', Size, #10);
+  Flush(IO^);
   {$ifdef Unix}
     FWrite(@Data.Rows[0], BytesPerRow, Size, CStdOut);
   {$else}
