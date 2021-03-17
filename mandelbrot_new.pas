@@ -11,7 +11,7 @@ uses CMem, {$ifdef Unix}CThreads,{$ENDIF} SysUtils, Math, MTProcs;
 {$ifdef Unix}
   var CStdOut: Pointer; external 'c' name 'stdout';
   
-  procedure PrintF(const Format: PChar); cdecl; varargs; external ’c’ name ’printf’;  
+  procedure PrintF(const Format: PChar); cdecl; varargs; external 'c' name 'printf';
   
   function FWrite(const DataStart: Pointer;
                   ElementSize: PtrUInt;
